@@ -1,5 +1,13 @@
 #include "../../std_lib_facilities.h"
 
+class Token {                          // a very simple user-defined type
+public:
+    char kind;                         // what kind of token
+    double value;                      // for numbers: a value
+    Token(char k) :kind{ k }, value{ 0.0 } {}            // construct from one value
+    Token(char k, double v) :kind{ k }, value{ v } {}    // construct from two values
+};
+
 int main()
 {
     cout << "Please enter expression (we can handle +, -, * and /)\n";
