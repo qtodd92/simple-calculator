@@ -10,14 +10,14 @@ public:
 
 double expression()
 {
-    double left = expression();        // read and evaluate an Expression
+    double left = term();        // read and evaluate a Term
     Token t = get_token();             // get the next token
     switch (t.kind) {
     case '+':
-        return left + term();          // read and evaluate a Term,
+        return left + expression();          // read and evaluate a Term,
                                        // then do an add
     case '-':
-        return left - term();          // read and evaluate a Term,
+        return left - expression();          // read and evaluate a Term,
                                        // then do a subtraction
     default:
         return left;
