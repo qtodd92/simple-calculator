@@ -28,37 +28,64 @@ double expression()
     }
 }
 
-int main()
+double term()
 {
-    cout << "Please enter expression (we can handle +, -, * and /)\n";
-    cout << "add an x to end expression (e.g., 1+2*3x): ";
-    int lval = 0;
-    int rval;
-    cin >> lval;                       // read leftmost operand
-    if (!cin) error("no first operand");
-    for (char op; cin >> op; ) {       // read operator and right-hand operand
-                                       // repeatedly
-        if (op != 'x') cin >> rval;
-        if (!cin) error("no second operand");
-        switch (op) {
-        case '+':
-            lval += rval;              // add: lval = lval + rval
-            break;
-        case '-':
-            lval -= rval;              // subtract: lval = lval - rval
-            break;
+    double left = primary();
+    Token t = get_token();
+    while (true) {
+        switch (t.kind) {
         case '*':
-            lval *= rval;              // multiply: lval = lval * rval
+            left *= primary();
+            t = get_token();
             break;
         case '/':
-            lval /= rval;              // divide: lval = lval / rval
+        {
+            double d = primary();
+            if (d == 0) error("divide by zero");
+            left /= d;
+            t = get_token();
             break;
-        default:                       // not another operator: print result
-            cout << "Result: " << lval << '\n';
-            keep_window_open();
-            return 0;
-        }   
-    }    
-    error("bad expression");
+        }
+        default:
+            return left;
+        }
+    }
+}
+
+double primary()
+{
+    Token t = get_token();
+    switch (t.kind) {
+    case '(':   // handle '(' expression ')'
+    {
+        double d = expression();
+        t = get_token();
+        if (t.kind != ')') error("')' expected");
+        return d;
+    }
+    case '8':                  // we use '8' to represent a number
+        return t.value;        // return the number's value
+    defualt:
+        error("primary expected");
+    }
+}
+
+int main()
+{
+    try {
+        while (cin)
+            cout << expression() << '\n';
+        keep_window_open();
+    }
+    catch (exception& e) {
+        cerr << e.what() << '\n';
+        keep_window_open();
+        return 1;
+    }
+    catch (...) {
+        cerr << "exception \n";
+        keep_window_open();
+        return 2;
+    }
 }
 
