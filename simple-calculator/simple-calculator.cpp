@@ -10,17 +10,21 @@ public:
 
 double expression()
 {
-    double left = term();        // read and evaluate a Term
-    Token t = get_token();             // get the next token
-    switch (t.kind) {
-    case '+':
-        return left + expression();          // read and evaluate a Term,
-                                       // then do an add
-    case '-':
-        return left - expression();          // read and evaluate a Term,
-                                       // then do a subtraction
-    default:
-        return left;
+    double left = term();                   // read and evaluate a Term
+    Token t = get_token();                  // get the next token
+    while (true) {
+        switch (t.kind) {
+        case '+':
+            left += term();                // read and evaluate a Term,
+            t = get_token();
+            break;
+        case '-':
+            left -= term();                // read and evaluate a Term,
+            t = get_token();
+            break;
+        default:
+            return left;                   // finally: no more + or -; return the answer
+        }   
     }
 }
 
