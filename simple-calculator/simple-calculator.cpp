@@ -8,6 +8,22 @@ public:
     Token(char k, double v) :kind{ k }, value{ v } {}    // construct from two values
 };
 
+double expression()
+{
+    double left = expression();        // read and evaluate an Expression
+    Token t = get_token();             // get the next token
+    switch (t.kind) {
+    case '+':
+        return left + term();          // read and evaluate a Term,
+                                       // then do an add
+    case '-':
+        return left - term();          // read and evaluate a Term,
+                                       // then do a subtraction
+    default:
+        return left;
+    }
+}
+
 int main()
 {
     cout << "Please enter expression (we can handle +, -, * and /)\n";
