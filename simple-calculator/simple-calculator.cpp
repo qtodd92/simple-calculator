@@ -1,4 +1,54 @@
+/*
+    Simple calculator
+
+    Revision history:
+
+        Originally written by Quentin Todd Spring 2024.
+
+    This program implements a basic expression calculator.
+    Input from cin; output to cout.
+    The grammar for input is:
+
+    Statement:
+        Expression
+        Print
+        Quit
+
+    Print:
+        ;
+
+    Quit:
+        q
+
+    Expression:
+        Term
+        Expression + Term
+        Expression - Term
+    Term:
+        Primary
+        Term * Primary
+        Term / Primary
+        Term % Primary
+    Primary:
+        Number
+        ( Expression )
+        - Primary
+        + Primary
+    Number:
+        floating-point-literal
+
+
+    Input comes from cin through the Token_stream called ts.
+*/
+
+
 #include "../../std_lib_facilities.h"
+
+const char number = '8';
+const char quit = 'q';
+const char print = ';';
+const string prompt = "> ";
+const string result = "= ";            // used to indicate that what follows is a result
 
 class Token {                          // a very simple user-defined type
 public:
@@ -25,9 +75,10 @@ void Token_stream::putback(Token t)
 }
 
 Token Token_stream::get()
+      // read characters from cin and compose a Token
 {
-    if (full) {                            // do we already have a Token ready
-        full = false;                      // remove Token from buffer
+    if (full) {                            // check if we already have a Token ready
+        full = false;                      
         return buffer;
     }
 
@@ -35,18 +86,24 @@ Token Token_stream::get()
     cin >> ch;                             // note that >> skips whitespace (space, newlines, tab, etc.)
 
     switch (ch) {
-    case ';':                              // for "print"
-    case 'q':                              // for "quit"
-    case '(': case ')': case '+': case '-': case '*': case '/':
+    case quit:                              
+    case print:                              
+    case '(': 
+    case ')': 
+    case '+': 
+    case '-': 
+    case '*': 
+    case '/': 
+    case '%':
         return Token{ ch };                // let each character represent itself
-    case '.':
+    case '.':                              // a floating-point-literal can start with a dot
     case '0': case '1': case '2': case '3': case '4': 
-    case '5': case '6': case '7': case '8': case '9':
+    case '5': case '6': case '7': case '8': case '9':          // numeric literal
     {
         cin.putback(ch);                   // put digit back into the input stream
         double val;
         cin >> val;                        // read a floating-point number
-        return Token{ '8', val };          // let '8' represent "a number"
+        return Token{ number, val };          
     }
     default:
         error("Bad token");
@@ -68,8 +125,12 @@ double primary()
         if (t.kind != ')') error("')' expected");
         return d;
     }
-    case '8':                  // we use '8' to represent a number
+    case number:                  
         return t.value;        // return the number's value
+    case '-':
+        return -primary();
+    case '+':
+        return primary();
     defualt:
         error("primary expected");
     }
@@ -90,6 +151,14 @@ double term()
             double d = primary();
             if (d == 0) error("divide by zero");
             left /= d;
+            t = ts.get();
+            break;
+        }
+        case '%':
+        {
+            double d = primary();
+            if (d == 0) error("%:divide by zero");
+            left = fmod(left, d);
             t = ts.get();
             break;
         }
@@ -121,26 +190,29 @@ double expression()
     }
 }
 
+void calculate()                           // expression evaluation loop
+{
+    while (cin) {
+        cout << prompt;
+        Token t = ts.get();
+        while (t.kind == print) t = ts.get();
+        if (t.kind == quit) return;
+        ts.putback(t);
+        cout << result << expression() << '\n';
+    }
+}
+
+
 int main()
 {
     try {
-        double val = 0;
-        while (cin) {
-            cout << ">";
-            Token t = ts.get();
-
-            if (t.kind == 'q') break;
-            if (t.kind == ';')
-                cout << "=" << val << '\n';
-            else
-                ts.putback(t);
-            val = expression();
-        }
+        calculate();
         keep_window_open();
+        return 0;
     }
     catch (exception& e) {
         cerr << e.what() << '\n';
-        keep_window_open();
+        keep_window_open("~~");
         return 1;
     }
     catch (...) {
