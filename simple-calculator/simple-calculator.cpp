@@ -53,32 +53,31 @@ Token Token_stream::get()
     }
 }
 
-double expression()
+Token_stream ts;
+
+double expression();
+
+double primary()
 {
-    double left = term();                   // read and evaluate a Term
-    Token_stream ts;
-    Token t = ts.get();                    // get the next token
-    while (true) {
-        switch (t.kind) {
-        case '+':
-            left += term();                // read and evaluate a Term,
-            t = ts.get();
-            break;
-        case '-':
-            left -= term();                // read and evaluate a Term,
-            t = ts.get();
-            break;
-        default:
-            ts.putback(t);                 // put t back into the token stream
-            return left;                   // finally: no more + or -; return the answer
-        }   
+    Token t = ts.get();
+    switch (t.kind) {
+    case '(':   // handle '(' expression ')'
+    {
+        double d = expression();
+        t = ts.get();
+        if (t.kind != ')') error("')' expected");
+        return d;
+    }
+    case '8':                  // we use '8' to represent a number
+        return t.value;        // return the number's value
+    defualt:
+        error("primary expected");
     }
 }
 
 double term()
 {
     double left = primary();
-    Token_stream ts;
     Token t = ts.get();                    // get the next Token from the Token stream
     while (true) {
         switch (t.kind) {
@@ -101,30 +100,42 @@ double term()
     }
 }
 
-double primary()
+double expression()
 {
-    Token_stream ts;
-    Token t = ts.get();
-    switch (t.kind) {
-    case '(':   // handle '(' expression ')'
-    {
-        double d = expression();
-        t = ts.get();
-        if (t.kind != ')') error("')' expected");
-        return d;
-    }
-    case '8':                  // we use '8' to represent a number
-        return t.value;        // return the number's value
-    defualt:
-        error("primary expected");
+    double left = term();                   // read and evaluate a Term
+    Token t = ts.get();                    // get the next token
+    while (true) {
+        switch (t.kind) {
+        case '+':
+            left += term();                // read and evaluate a Term,
+            t = ts.get();
+            break;
+        case '-':
+            left -= term();                // read and evaluate a Term,
+            t = ts.get();
+            break;
+        default:
+            ts.putback(t);                 // put t back into the token stream
+            return left;                   // finally: no more + or -; return the answer
+        }
     }
 }
 
 int main()
 {
     try {
-        while (cin)
-            cout << expression() << '\n';
+        double val = 0;
+        while (cin) {
+            cout << ">";
+            Token t = ts.get();
+
+            if (t.kind == 'q') break;
+            if (t.kind == ';')
+                cout << "=" << val << '\n';
+            else
+                ts.putback(t);
+            val = expression();
+        }
         keep_window_open();
     }
     catch (exception& e) {
